@@ -1,0 +1,142 @@
+@font-face {
+  font-family: 'Hedvig Sans';
+  src: url('/public/hedvig-sans.woff') format('woff');
+  display: swap;
+}
+
+body {}
+
+h1:hover {
+  cursor: text;
+}
+
+h1[contenteditable]:empty::before {
+  content: attr(placeholder);
+  color: gray;
+  font-weight: normal;
+}
+
+p[contenteditable]:empty::before {
+  content: attr(placeholder);
+  color: gray;
+  font-weight: normal;
+}
+
+/* Tiptap editori ichidagi bo'sh elementlarga placeholder qo'shish */
+.tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+  font-weight: normal;
+}
+
+/* Faqat ko'rinishni yaxshilash uchun */
+.tiptap h2 {
+  font-size: 1.5rem;
+  font-weight: normal;
+  margin-bottom: 10px;
+  font-family: 'Hedvig Sans', sans-serif;
+}
+
+.tiptap p {
+  margin-bottom: 8px;
+}
+
+.custom-p {
+  color: #555;
+  font-size: 13px;
+  font-family: 'Hedvig Sans', sans-serif;
+}
+
+.bubble-menu {
+  display: flex;
+  align-items: center;
+}
+
+.bubble-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-right: 1px solid rgba(128, 128, 128, 0.4);
+  border-top: 1px solid rgba(128, 128, 128, 0.4);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.4);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.bubble-menu button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.bubble-menu button:hover {
+  background: rgba(216, 213, 213, 0.5);
+}
+
+.bubble-menu button:first-child {
+  border-left: 1px solid rgba(128, 128, 128, 0.4);
+}
+
+.custom-div {
+  font-weight: 400;
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1.58;
+  padding: 0;
+  margin: 0;
+  color: rgba(0, 0, 0, .8);
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
+.App {
+  max-width: 800px;
+  margin: auto;
+}
+
+@import "https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.core.css";
+
+.resize-none {
+  resize: none;
+}
+
+.btn {
+  margin: 2px;
+}
+
+button {
+  padding: 5px 10px;
+  width: 48px;
+  height: 48px;
+}
+
+.tiptap {
+  outline: none;
+}
+
+.tiptap:focus {
+  outline: none;
+}
+
+.custom-div {
+  min-height: 250px;
+  margin-top: 24px;
+}
+
+.tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
