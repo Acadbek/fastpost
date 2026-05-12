@@ -7,9 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@tailwindcss/vite": "^4.2.4",
     "@tiptap/core": "^3.22.5",
     "@tiptap/extension-blockquote": "^3.23.1",
@@ -22,12 +25,18 @@
     "@tiptap/react": "^3.22.5",
     "@tiptap/starter-kit": "^3.22.5",
     "awesome-phonenumber": "^7.8.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "express": "^5.2.1",
     "lodash": "^4.18.1",
     "motion": "^12.38.0",
+    "nanoid": "^5.1.11",
     "quill": "2.0.3",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-quill": "^2.0.0",
+    "react-router-dom": "^7.15.0",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
@@ -38,6 +47,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^10.2.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

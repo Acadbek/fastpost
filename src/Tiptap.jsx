@@ -1,149 +1,122 @@
 import { useEditor, EditorContent } from '@tiptap/react'
-import { FloatingMenu, BubbleMenu } from '@tiptap/react/menus'
+import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import { Node, mergeAttributes } from '@tiptap/core'
 import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
-import Text from '@tiptap/extension-text'
 import { Placeholder } from '@tiptap/extensions'
-import Blockquote from '@tiptap/extension-blockquote'
 
-const Tiptap = () => {
+// Define custom nodes OUTSIDE the component
+const Title = Node.create({
+  name: 'title',
+  group: 'block',
+  content: 'inline*',
+  defining: true,
 
-  const Title = Node.create({
-    name: 'title',
-    group: 'block',
-    content: 'inline*', // Faqat matn qabul qiladi
-    defining: true, // Enter bosganda yangi paragrafga o'tishiga yordam beradi
+  parseHTML() {
+    return [{ tag: 'h2' }]
+  },
 
-    parseHTML() {
-      return [{ tag: 'h2' }]
-    },
+  renderHTML({ HTMLAttributes }) {
+    return ['h2', mergeAttributes(HTMLAttributes), 0]
+  },
 
-    renderHTML({ HTMLAttributes }) {
-      return ['h2', mergeAttributes(HTMLAttributes), 0]
-    },
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { state } = editor
+        const { $from } = state.selection
 
-    addKeyboardShortcuts() {
-      return {
-        Enter: ({ editor }) => {
-          const { state } = editor
-          const { $from } = state.selection
+        if ($from.parent.type.name !== 'title') {
+          return false
+        }
 
-          if ($from.parent.type.name !== 'title') {
-            return false
-          }
+        return editor
+          .chain()
+          .focus()
+          .insertContentAt($from.after(), {
+            type: 'customParagraph',
+          })
+          .setTextSelection($from.after() + 1)
+          .run()
+      },
+    }
+  }
+})
 
+const CustomParagraph = Node.create({
+  name: 'customParagraph',
+  group: 'block',
+  content: 'inline*',
+  defining: true,
+
+  parseHTML() {
+    return [{ tag: 'p.custom-p' }]
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['p', mergeAttributes(HTMLAttributes, { class: 'custom-p' }), 0]
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      Enter: ({ editor }) => {
+        const { state } = editor
+        const { selection } = state
+        const { $from } = selection
+
+        if ($from.parent.type.name !== 'customParagraph') {
+          return false
+        }
+
+        const nextNodePos = $from.after()
+        const nextNode = state.doc.nodeAt(nextNodePos)
+
+        if (nextNode && nextNode.type.name === 'customBody') {
           return editor
             .chain()
             .focus()
-            .insertContentAt($from.after(), {
-              type: 'customParagraph',
-            })
-            .setTextSelection($from.after() + 1)
+            .setTextSelection(nextNodePos + 2)
             .run()
-        },
-      }
+        }
+
+        return false
+      },
     }
-  })
+  }
+})
 
-  const CustomParagraph = Node.create({
-    name: 'customParagraph',
-    group: 'block',
-    content: 'inline*',
-    defining: true,
+const CustomBody = Node.create({
+  name: 'customBody',
+  group: 'block',
+  content: 'block*',
+  defining: true,
 
-    parseHTML() {
-      return [{ tag: 'p.custom-p' }]
-    },
-    renderHTML({ HTMLAttributes }) {
-      return ['p', mergeAttributes(HTMLAttributes, { class: 'custom-p' }), 0]
-    },
+  parseHTML() {
+    return [{ tag: 'div.custom-div' }]
+  },
 
-    addKeyboardShortcuts() {
-      return {
-        Enter: ({ editor }) => {
-          const { state } = editor
-          const { selection } = state
-          const { $from } = selection
+  renderHTML({ HTMLAttributes }) {
+    return ['div', mergeAttributes(HTMLAttributes, { class: 'custom-div' }), 0]
+  },
+})
 
-          // Faqat bizning customParagraph ichidami tekshiramiz
-          if ($from.parent.type.name !== 'customParagraph') {
-            return false
-          }
+const CustomDocument = Document.extend({
+  content: 'title customParagraph customBody',
+})
 
-          // Hozirgi customParagraph'dan keyingi pozitsiyani topamiz
-          const nextNodePos = $from.after()
-
-          // Editor holatidan aynan o'sha pozitsiyadagi kontentni tekshiramiz
-          const nextNode = state.doc.nodeAt(nextNodePos)
-
-          if (nextNode && nextNode.type.name === 'customBody') {
-            // Agar keyingi node customBody bo'lsa, uning birinchi ichki qatoriga (paragraph) tushamiz
-            return editor
-              .chain()
-              .focus()
-              // nextNodePos + 1 (div ichiga kirish) + 1 (p ichiga kirish)
-              .setTextSelection(nextNodePos + 2)
-              .run()
-          }
-
-          return false
-        },
-      }
-    }
-
-    // addKeyboardShortcuts() {
-    //   return {
-    //     Enter: ({ editor }) => {
-    //       const { state } = editor
-    //       const { $from } = state.selection
-
-    //       if ($from.parent.type.name !== 'customParagraph') {
-    //         return false
-    //       }
-
-    //       return editor
-    //         .chain()
-    //         .focus()
-    //         .setTextSelection($from.after() + 2)
-    //         .run()
-    //     },
-    //   }
-    // }
-  })
-
-  const CustomBody = Node.create({
-    name: 'customBody',
-    group: 'block',
-    content: 'block*',
-    defining: true,
-
-    parseHTML() {
-      return [{ tag: 'div.custom-div' }]
-    },
-
-    renderHTML({ HTMLAttributes }) {
-      return ['div', mergeAttributes(HTMLAttributes, { class: 'custom-div' }), 0]
-    },
-  })
-
-  const CustomDocument = Document.extend({
-    content: 'title customParagraph customBody',
-  })
-
+const Tiptap = () => {
+  // Initialize editor with all extensions
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         document: false,
-        paragraph: false,
       }),
       Placeholder.configure({
         showOnlyCurrent: false,
         placeholder: ({ node }) => {
-          if (node.type.name === 'title') return 'Title'
-          if (node.type.name === 'customParagraph') return 'Your name'
-          if (node.type.name === 'paragraph') return 'hi'
+          if (node.type.name === 'title') return 'Sarlavha'
+          if (node.type.name === 'customParagraph') return 'Ismingiz'
+          if (node.type.name === 'paragraph') return 'Matn yozing...'
           return ''
         },
       }),
@@ -152,7 +125,6 @@ const Tiptap = () => {
       CustomParagraph,
       CustomBody,
       Paragraph,
-      Text
     ],
 
     content: {
@@ -175,7 +147,6 @@ const Tiptap = () => {
       ],
     },
 
-
     autofocus: 'start',
 
     editorProps: {
@@ -183,8 +154,81 @@ const Tiptap = () => {
         class: 'tiptap',
       },
     },
-
   })
+
+  // Post creation function
+  function createPost() {
+    if (!editor) {
+      alert('Editor hali tayyar emas')
+      return
+    }
+
+    const editorContent = editor.getJSON()
+
+    let title = ''
+    let author = ''
+    let content = ''
+
+    if (editorContent.content) {
+      // Extract title
+      const titleNode = editorContent.content[0]
+      if (titleNode && titleNode.type === 'title' && titleNode.content) {
+        title = titleNode.content.map(n => n.text || '').join('')
+      }
+
+      // Extract author
+      const authorNode = editorContent.content[1]
+      if (authorNode && authorNode.type === 'customParagraph' && authorNode.content) {
+        author = authorNode.content.map(n => n.text || '').join('')
+      }
+
+      // Extract content (HTML from body)
+      const bodyNode = editorContent.content[2]
+      if (bodyNode && bodyNode.type === 'customBody') {
+        content = editor.getHTML().split('<div class="custom-div">')[1]?.split('</div>')[0] || ''
+      }
+    }
+
+    if (!title.trim()) {
+      alert('Sarlavha ni kiriting!')
+      return
+    }
+
+    if (!content.trim()) {
+      alert('Matn ni kiriting!')
+      return
+    }
+
+    // Send to backend
+    fetch('http://localhost:3000/api/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: title.trim(),
+        author: author.trim() || 'Nomsiz',
+        content: content.trim(),
+      }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Post muvaffaqiyatli yaratildi!\nURL: ' + data.url)
+          editor.commands.clearContent()
+        } else {
+          alert('Xatolik: ' + data.message)
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error)
+        alert('Server xatosi: ' + error.message)
+      })
+  }
+
+  if (!editor) {
+    return null
+  }
 
   return (
     <>
@@ -220,12 +264,8 @@ const Tiptap = () => {
               editor.chain().focus().toggleHeading({ level: 1 }).run()
             }}
             className={editor.isActive('heading', { level: 1 }) ? 'is-active' : ''}
-
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z"></path></svg>
-          </button>
-          <button>
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#000000" viewBox="0 0 256 256"><path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z"></path></svg>
           </button>
           <button
             onClick={() => {
@@ -235,8 +275,12 @@ const Tiptap = () => {
           </button>
         </div>
       </BubbleMenu>
+
+      <button onClick={createPost} style={{ marginTop: '20px', padding: '10px 20px', fontSize: '16px' }}>
+        Chop Etish
+      </button>
     </>
   )
 }
 
-export default Tiptap 
+export default Tiptap
