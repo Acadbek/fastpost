@@ -6,7 +6,7 @@ import Document from '@tiptap/extension-document'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import { Placeholder } from '@tiptap/extensions'
-
+import Blockquote from '@tiptap/extension-blockquote'
 
 const Tiptap = () => {
 
@@ -64,20 +64,53 @@ const Tiptap = () => {
       return {
         Enter: ({ editor }) => {
           const { state } = editor
-          const { $from } = state.selection
+          const { selection } = state
+          const { $from } = selection
 
+          // Faqat bizning customParagraph ichidami tekshiramiz
           if ($from.parent.type.name !== 'customParagraph') {
             return false
           }
 
-          return editor
-            .chain()
-            .focus()
-            .setTextSelection($from.after() + 2)
-            .run()
+          // Hozirgi customParagraph'dan keyingi pozitsiyani topamiz
+          const nextNodePos = $from.after()
+
+          // Editor holatidan aynan o'sha pozitsiyadagi kontentni tekshiramiz
+          const nextNode = state.doc.nodeAt(nextNodePos)
+
+          if (nextNode && nextNode.type.name === 'customBody') {
+            // Agar keyingi node customBody bo'lsa, uning birinchi ichki qatoriga (paragraph) tushamiz
+            return editor
+              .chain()
+              .focus()
+              // nextNodePos + 1 (div ichiga kirish) + 1 (p ichiga kirish)
+              .setTextSelection(nextNodePos + 2)
+              .run()
+          }
+
+          return false
         },
       }
     }
+
+    // addKeyboardShortcuts() {
+    //   return {
+    //     Enter: ({ editor }) => {
+    //       const { state } = editor
+    //       const { $from } = state.selection
+
+    //       if ($from.parent.type.name !== 'customParagraph') {
+    //         return false
+    //       }
+
+    //       return editor
+    //         .chain()
+    //         .focus()
+    //         .setTextSelection($from.after() + 2)
+    //         .run()
+    //     },
+    //   }
+    // }
   })
 
   const CustomBody = Node.create({
@@ -194,7 +227,10 @@ const Tiptap = () => {
           <button>
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#000000" viewBox="0 0 256 256"><path d="M208,56V88a8,8,0,0,1-16,0V64H136V192h24a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16h24V64H64V88a8,8,0,0,1-16,0V56a8,8,0,0,1,8-8H200A8,8,0,0,1,208,56Z"></path></svg>
           </button>
-          <button>
+          <button
+            onClick={() => {
+              editor.chain().focus().toggleBlockquote().run()
+            }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#000000" viewBox="0 0 256 256"><path d="M100,56H40A16,16,0,0,0,24,72v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,100,56Zm0,80H40V72h60ZM216,56H156a16,16,0,0,0-16,16v64a16,16,0,0,0,16,16h60v8a32,32,0,0,1-32,32,8,8,0,0,0,0,16,48.05,48.05,0,0,0,48-48V72A16,16,0,0,0,216,56Zm0,80H156V72h60Z"></path></svg>
           </button>
         </div>
